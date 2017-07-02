@@ -1,0 +1,68 @@
+implementation notes
+13.45/020717
+
+database 
+- ef6 code-first
+- postgre (setup seems simple - see npg nuget)
+- migrate via .sql script (so you dont need ef to build it)
+- manual setup of M2M classes -- the lazy include bs is always annoying. 
+
+search method
+1. validate input 
+2. escape input
+3. build search query (linq-queries)
+4. search should return full people ie (name, age, exp-years, <skills>, <championships>)
+
+output
+0> 
+main: search(test1params);search(test2params);search(test3params);listSkills();
+
+A> Console
+- search.exe search --name-like "jono" --minAge 18 --maxAge 21 --skills 1,2,3 --yearsExp 12
+name: Jono
+age: 12
+skills: <skill-1>,<skill-2>
+exp: 22
+
+- search.exe list-skills
+id, name
+
+
+B> Simple MVC.NET form
+bootstrap skeleton;
+inputs; 
+- name: textbox
+- age: drop-down
+- skills: tags-input textbox
+- exp: dropdown
+
+controller: /search
+view-model: search-query <name, age-groups, selectedAgeGroups, allSkills, selectedSkillIds, numExp>
+view-model: search-result <name, age, exp-years, <skills>, <championships>>
+
+C> add intro-js with explaniation on front-end (looks like you just wrap a element in a step-div)
+
+
+
+
+
+
+14.45/start model dev properly
+- db being created 
+
+
+15.30/ been looking into m2m hierarchy tree loading
+need to get everything else working, i think i have a solution
+
+15.44/ loading person with assosiated skills and comps.
+
+15.45/ uncommenting the m2m with skills X:
+
+16.50/ (an hour later.) We've got a stored proc that retrieves a list of all subskills (not as tree mind) 
+
+Time to write the search lib. 
+
+19.20/ Alright, we're retrieving results as expected. 
+- Need to add args to console, or maybe just go straight to MVC..
+- Tried postgre but more bother than its worth with EF6.
+- Need to setup seed properly, add stored-proc & TVP to db creation. 
