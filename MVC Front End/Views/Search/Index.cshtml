@@ -1,0 +1,344 @@
+﻿@model MVC.FrontEnd.ViewModels.SearchQueryVM
+<!DOCTYPE html>
+<!-- saved from url=(0039)http://getbootstrap.com/examples/theme/ -->
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="http://getbootstrap.com/favicon.ico">
+    <title>jump.work: Athlete Search</title>
+    <!-- Bootstrap core CSS -->
+    <link href="./bootstrap_files/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap theme -->
+    <link href="./bootstrap_files/bootstrap-theme.min.css" rel="stylesheet">
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <link href="./bootstrap_files/ie10-viewport-bug-workaround.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="./bootstrap_files/theme.css" rel="stylesheet">
+
+    <link href="~/bootstrap_files/bootstrap-tagsinput.css" rel="stylesheet" />
+    <link href="~/bootstrap_files/tyxpeahead.css" rel="stylesheet" />
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+        </div>
+    </nav>
+    <div class="container theme-showcase" role="main">
+        <!-- Main jumbotron for a primary marketing message or call to action -->
+        <div class="jumbotron">
+            <h1>Athlete Search</h1>
+            <p>A simple search to find athletes by differnt parameters for jump.work</p>
+        </div>
+        <div class="row">
+
+            
+                @using (Html.BeginForm("searchForPeople", "Search", FormMethod.Get, new { @class = "form-horizontal" }))
+                {
+                    <fieldset>
+                        <legend>Search details:</legend>
+
+                        <!-- skills autocomplete -->
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="@Html.NameFor(model => model.RequiredSkillIDs)">@Html.DisplayNameFor(model => model.RequiredSkillIDs)</label>
+                            <div class="col-md-8">
+                                <input autocomplete="off" id="@Html.IdFor(model => model.RequiredSkillIDs)" value="@Model.RequiredSkillIDs" name="@Html.NameFor(model => model.RequiredSkillIDs)" type="text" placeholder="with which skills?" class="form-control input-lg" >
+                            </div>
+                        </div>
+
+                        <!-- Name textbox -->
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="@Html.NameFor(model => model.LikeName)">@Html.DisplayNameFor(model => model.LikeName)</label>
+                            <div class="col-md-4">
+                                <input autocomplete="off" id="@Html.IdFor(model => model.LikeName)" name="@Html.NameFor(model => model.LikeName)" type="text" placeholder="with name containing.." class="form-control input-md" >
+                            </div>
+                        </div>
+
+                        <!-- age range dropdown -->
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="selectbasic">Age Range</label>
+                            <div class="col-md-2">
+                                <select name="@Html.NameFor(model=>model.SelectedAgeRange)" id="@Html.IdFor(model=>model.SelectedAgeRange)" class="form-control">
+                                    @foreach (var ageRange in Model.AllAgeRanges)
+                                    {
+                                        <option @(ageRange.ID == Model.SelectedAgeRange ? "selected" : "")  value="@ageRange.ID" >
+                                            
+                                            @if (ageRange.MinAge.HasValue && ageRange.MaxAge.HasValue)
+                                            {
+                                                @: @ageRange.MinAge - @ageRange.MaxAge
+                                            }
+                                            else if (ageRange.MinAge.HasValue)
+                                            {
+                                                @: > @ageRange.MinAge
+                                            }
+                                            else if (ageRange.MaxAge.HasValue)
+                                            {
+                                                @: < @ageRange.MaxAge
+                                            }
+                                            else{
+                                                @: Any age
+                                            }
+                                        </option>
+                                    }
+                                </select></div></div><!-- Min years exp input--><div class="form-group">
+                            <label class="col-md-4 control-label" for="@Html.NameFor(model=>model.YearsExperience)">@Html.DisplayNameFor(model => model.YearsExperience)</label>
+                            <div class="col-md-2">
+                                <input autocomplete="off" id="@Html.IdFor(model=>model.YearsExperience)" name="@Html.NameFor(model=>model.YearsExperience)" type="text" placeholder="min years experience?" class="form-control input-md">
+                            </div>
+                        </div>
+
+                        <!-- Button -->
+                        <div class="form-group">
+                            <div class="col-md-8">
+                                <button type="submit" class="btn btn-primary pull-right">Search</button>
+                            </div>
+                        </div>
+
+                    </fieldset>
+                }
+
+        </div>
+
+            </div>
+
+            <!-- Bootstrap core JavaScript
+            ================================================== -->
+            <!-- Placed at the end of the document so the pages load faster -->
+            <script src="./bootstrap_files/jquery.min.js"></script>
+            <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
+            <script src="./bootstrap_files/bootstrap.min.js"></script>
+
+            <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+            <script src="./bootstrap_files/ie10-viewport-bug-workaround.js"></script>
+
+            <script src="~/bootstrap_files/typeahead.bundle.js"></script>
+            <script src="~/bootstrap_files/bootstrap-tagsinput.js"></script>
+
+            <script>
+                $(document).ready(function () {
+
+                    var skills = new Bloodhound({
+                        datumTokenizer: Bloodhound.tokenizers.obj.whitespace("Name"),
+                        queryTokenizer: Bloodhound.tokenizers.whitespace,
+                        // url points to a json file that contains an array of skills
+                        prefetch: '/Search/GetSkills'
+                    });
+                    //var skills = ["winter-sports", "eSports"];
+                    $("#@Html.IdFor(model=>model.RequiredSkillIDs)").tagsinput({
+                        itemValue: 'ID',
+                        itemText: 'Name',
+                        freeInput: false,
+                        typeaheadjs: {
+                            name: 'skills',
+                            displayKey: 'Name',
+                            source: skills.ttAdapter()
+                        }
+                    });
+                });
+            </script>
+
+            <svg xmlns="http://www.w3.org/2000/svg" width="1140" height="500" viewBox="0 0 1140 500" preserveAspectRatio="none" style="display: none; visibility: hidden; position: absolute; top: -100%; left: -100%;"><defs><style type="text/css"></style></defs><text x="0" y="57" style="font-weight:bold;font-size:57pt;font-family:Arial, Helvetica, Open Sans, sans-serif">Thirdslide</text></svg><div style="display: none;"></div>
+            <style>
+                .humane, .humane-libnotify {
+                    position: fixed;
+                    -moz-transition: all 0.3s ease-out;
+                    -webkit-transition: all 0.3s ease-out;
+                    -ms-transition: all 0.3s ease-out;
+                    -o-transition: all 0.3s ease-out;
+                    transition: all 0.3s ease-out;
+                    z-index: 100000;
+                    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100);
+                }
+
+                .humane, .humane-libnotify {
+                    font-family: Ubuntu, Arial, sans-serif;
+                    text-align: center;
+                    font-size: 15px;
+                    top: 10px;
+                    right: 10px;
+                    opacity: 0;
+                    width: 150px;
+                    color: #fff;
+                    padding: 10px;
+                    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAABQCAYAAADYxx/bAAAABmJLR0QA/wD/AP+gvaeTAAAANElEQVQYlWNgYGB4ysTAwMDAxMjICCUQXDQWAwMDAxMTExMedcRyB6d5CAMQ5hGrjSrmAQBQdgIXlosSTwAAAABJRU5ErkJggg==');
+                    background: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(0,0,0,0.9)), color-stop(1, rgba(50,50,50,0.9))) no-repeat;
+                    background: -moz-linear-gradient(top, rgba(0,0,0,0.9) 0%, rgba(50,50,50,0.9) 100%) no-repeat;
+                    background: -webkit-linear-gradient(top, rgba(0,0,0,0.9) 0%, rgba(50,50,50,0.9) 100%) no-repeat;
+                    background: -ms-linear-gradient(top, rgba(0,0,0,0.9) 0%, rgba(50,50,50,0.9) 100%) no-repeat;
+                    background: -o-linear-gradient(top, rgba(0,0,0,0.9) 0%, rgba(50,50,50,0.9) 100%) no-repeat;
+                    background: linear-gradient(top, rgba(0,0,0,0.9) 0%, rgba(50,50,50,0.9) 100%) no-repeat;
+                    *background-color: #000;
+                    -webkit-border-radius: 5px;
+                    border-radius: 5px;
+                    -webkit-box-shadow: 0 4px 4px -4px #000;
+                    box-shadow: 0 4px 4px -4px #000;
+                    -moz-transform: translateY(-40px);
+                    -webkit-transform: translateY(-40px);
+                    -ms-transform: translateY(-40px);
+                    -o-transform: translateY(-40px);
+                    transform: translateY(-40px);
+                }
+
+                    .humane p, .humane-libnotify p, .humane ul, .humane-libnotify ul {
+                        margin: 0;
+                        padding: 0;
+                    }
+
+                    .humane ul, .humane-libnotify ul {
+                        list-style: none;
+                    }
+
+                    .humane.humane-libnotify-info, .humane-libnotify.humane-libnotify-info {
+                        background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAABQCAYAAADYxx/bAAAABmJLR0QA/wD/AP+gvaeTAAAAMUlEQVQYlWNgYDB6ysTAwMDAxMDACCcYUFkMDEwMDEwMBNVhkxg65jGhmke6M6hgHgBSdgHnpZwADwAAAABJRU5ErkJggg==');
+                        background: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(0,0,50,0.9)), color-stop(1, rgba(0,0,100,0.9))) no-repeat;
+                        background: -moz-linear-gradient(top, rgba(0,0,50,0.9) 0%, rgba(0,0,100,0.9) 100%) no-repeat;
+                        background: -webkit-linear-gradient(top, rgba(0,0,50,0.9) 0%, rgba(0,0,100,0.9) 100%) no-repeat;
+                        background: -ms-linear-gradient(top, rgba(0,0,50,0.9) 0%, rgba(0,0,100,0.9) 100%) no-repeat;
+                        background: -o-linear-gradient(top, rgba(0,0,50,0.9) 0%, rgba(0,0,100,0.9) 100%) no-repeat;
+                        background: linear-gradient(top, rgba(0,0,50,0.9) 0%, rgba(0,0,100,0.9) 100%) no-repeat;
+                        *background-color: #030;
+                    }
+
+                    .humane.humane-libnotify-success, .humane-libnotify.humane-libnotify-success {
+                        background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAABQCAYAAADYxx/bAAAABmJLR0QA/wD/AP+gvaeTAAAAMUlEQVQYlWNgMGJ4ysTAwMDAxMAIJxhQWQwMDEwMTKgS2NRhkxg65jGhmke6M6hhHgBS2QHn2LzhygAAAABJRU5ErkJggg==');
+                        background: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(0,50,0,0.9)), color-stop(1, rgba(0,100,0,0.9))) no-repeat;
+                        background: -moz-linear-gradient(top, rgba(0,50,0,0.9) 0%, rgba(0,100,0,0.9) 100%) no-repeat;
+                        background: -webkit-linear-gradient(top, rgba(0,50,0,0.9) 0%, rgba(0,100,0,0.9) 100%) no-repeat;
+                        background: -ms-linear-gradient(top, rgba(0,50,0,0.9) 0%, rgba(0,100,0,0.9) 100%) no-repeat;
+                        background: -o-linear-gradient(top, rgba(0,50,0,0.9) 0%, rgba(0,100,0,0.9) 100%) no-repeat;
+                        background: linear-gradient(top, rgba(0,50,0,0.9) 0%, rgba(0,100,0,0.9) 100%) no-repeat;
+                        *background-color: #030;
+                    }
+
+                    .humane.humane-libnotify-error, .humane-libnotify.humane-libnotify-error {
+                        background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAADICAYAAAAp8ov1AAAABmJLR0QA/wD/AP+gvaeTAAAAPklEQVQokWMwYmB4ysTAwMCATjASFsOmBBvBRJ7x+O0g0wCS7CDTH/RwH7X9MVDuwyaG032D2M2UeIYO7gMAqt8C19Bn7+YAAAAASUVORK5CYII=');
+                        background: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(50,0,0,0.9)), color-stop(1, rgba(100,0,0,0.9))) no-repeat;
+                        background: -moz-linear-gradient(top, rgba(50,0,0,0.9) 0%, rgba(100,0,0,0.9) 100%) no-repeat;
+                        background: -webkit-linear-gradient(top, rgba(50,0,0,0.9) 0%, rgba(100,0,0,0.9) 100%) no-repeat;
+                        background: -ms-linear-gradient(top, rgba(50,0,0,0.9) 0%, rgba(100,0,0,0.9) 100%) no-repeat;
+                        background: -o-linear-gradient(top, rgba(50,0,0,0.9) 0%, rgba(100,0,0,0.9) 100%) no-repeat;
+                        background: linear-gradient(top, rgba(50,0,0,0.9) 0%, rgba(100,0,0,0.9) 100%) no-repeat;
+                        *background-color: #300;
+                    }
+
+                    .humane.humane-animate, .humane-libnotify.humane-libnotify-animate {
+                        opacity: 1;
+                        -moz-transform: translateY(0);
+                        -webkit-transform: translateY(0);
+                        -ms-transform: translateY(0);
+                        -o-transform: translateY(0);
+                        transform: translateY(0);
+                    }
+
+                        .humane.humane-animate:hover, .humane-libnotify.humane-libnotify-animate:hover {
+                            opacity: 0.2;
+                        }
+
+                    .humane.humane-animate, .humane-libnotify.humane-libnotify-js-animate {
+                        opacity: 1;
+                        -moz-transform: translateY(0);
+                        -webkit-transform: translateY(0);
+                        -ms-transform: translateY(0);
+                        -o-transform: translateY(0);
+                        transform: translateY(0);
+                    }
+
+                        .humane.humane-animate:hover, .humane-libnotify.humane-libnotify-js-animate:hover {
+                            opacity: 0.2;
+                            filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=20);
+                        }
+
+                .gi-assertion-select * {
+                    cursor: crosshair !important;
+                }
+
+                    .gi-assertion-select *:hover {
+                        outline: 1px dotted rgba(0, 0, 0, 1);
+                    }
+
+                .gi-assertion-selected {
+                    outline: 3px solid rgba(0, 170, 0, 1) !important;
+                }
+
+
+                /*from tagsinput examples*/
+                .icon-github {
+                    background: no-repeat url('../img/github-16px.png');
+                    width: 16px;
+                    height: 16px;
+                }
+
+                .bootstrap-tagsinput {
+                    width: 100%;
+                }
+
+                .accordion {
+                    margin-bottom: -3px;
+                }
+
+                .accordion-group {
+                    border: none;
+                }
+
+                .twitter-typeahead .tt-query,
+                .twitter-typeahead .tt-hint {
+                    margin-bottom: 0;
+                }
+
+                .twitter-typeahead .tt-hint {
+                    display: none;
+                }
+
+                .tt-menu {
+                    position: absolute;
+                    top: 100%;
+                    left: 0;
+                    z-index: 1000;
+                    display: none;
+                    float: left;
+                    min-width: 160px;
+                    padding: 5px 0;
+                    margin: 2px 0 0;
+                    list-style: none;
+                    font-size: 14px;
+                    background-color: #ffffff;
+                    border: 1px solid #cccccc;
+                    border: 1px solid rgba(0, 0, 0, 0.15);
+                    border-radius: 4px;
+                    -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+                    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+                    background-clip: padding-box;
+                    cursor: pointer;
+                }
+
+                .tt-suggestion {
+                    display: block;
+                    padding: 3px 20px;
+                    clear: both;
+                    font-weight: normal;
+                    line-height: 1.428571429;
+                    color: #333333;
+                    white-space: nowrap;
+                }
+
+                    .tt-suggestion:hover,
+                    .tt-suggestion:focus {
+                        color: #ffffff;
+                        text-decoration: none;
+                        outline: 0;
+                        background-color: #428bca;
+                    }
+            </style>
+</body>
+</html>

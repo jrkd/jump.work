@@ -1,0 +1,31 @@
+12.55pm/030717
+
+Digesting the requirements
+-----------------------------
+This is a facade for a recruitment search. Supersets of skills & not-direct "experience" are especially important. 
+
+Start with a console.net app, if that's quick then add a bootstrap front-end. (tags-input & multi-select are nice ui features)
+
+Tempted to use postgre but if we're trying for speed here I don't know how well ef6 integrates? 
+
+Data model first thoughts;
+- person: id, name, age
+- skill: id, name, M2M-hierarchy? (while you could do skill.parent, in reality "snow boarding" is probably a subset of "winter sports" and "board sports")
+- competition: id, name, year (strip year out of name)
+- <binding>person-skill: person-id, skill-id
+- <binding>person-compeition: person-id, competition-id
+- maybe some indicies for the binding tables
+- maybe a view for person: id,name,age,skills-comma-delim, champions-comma-delim? Maybe not worth it. 
+- might be worth quickly generating a big dataset to set performance.
+
+
+Logic first thoughts;
+- name search: simply like '%%'
+- age range: a multi-select choice for each range (not val1 -> val2 textboxes)
+- skills: require specific skill names (no string searching for partial skill names) auto-complete tags input on a frontend
+- experience: takes a specific number of years
+- nothing fancy needed code structure wise -- not enough logic here for it. 
+- need to handle SQL-escaping to stop injection
+- If you have time, look into materialized-views for postgre for caching of queries (http://www.postgresqltutorial.com/postgresql-materialized-views/)
+
+13.35/end

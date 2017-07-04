@@ -1,1 +1,0 @@
-﻿CREATE TYPE integer_list_tbltype AS TABLE (ID int NOT NULL PRIMARY KEY);
