@@ -94,7 +94,7 @@ namespace Console
             //}
 
             System.Console.WriteLine("--Search test 1--");
-            IEnumerable<Person> results = Search.SearchHelper.searchForPeople("jono", 0, 100, new List<int>() {4}, 0);
+            IEnumerable<Person> results = Search.SearchHelper.searchForPeople(new List<int>() { 4 }, "jono", 0, 100, 0);
             foreach( var person in results)
             {
                 //System.Console.WriteLine("== RESULT: ==");

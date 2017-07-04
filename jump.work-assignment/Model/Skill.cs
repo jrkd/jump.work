@@ -13,5 +13,10 @@ namespace Model
 
         public virtual ICollection<Person> People { get; set; }
         public virtual ICollection<Skill> SubSkills { get; set; }
+
+        public Skill()
+        {
+            SubSkills = new List<Skill>();
+        }
     }
 }

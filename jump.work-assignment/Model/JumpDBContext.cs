@@ -17,7 +17,10 @@ namespace Model
     }
     public class JumpDBContext : DbContext
     {
-        public JumpDBContext():base("name=DBConnectionString") { }
+        public JumpDBContext():base("name=DBConnectionString")
+        {
+            this.Configuration.LazyLoadingEnabled = false;
+        }
 
         //List of all data types in database
         public DbSet<Person> People { get; set; }
@@ -77,7 +80,7 @@ namespace Model
         {
             const string TVP_INT_TABLE_TYPE_NAME = "dbo.integer_list_tbltype";
             DataTable tvpSkillIDsTable = new DataTable();
-            tvpSkillIDsTable.Columns.Add("n", typeof(int));
+            tvpSkillIDsTable.Columns.Add("ID", typeof(int));
             foreach(var skillID in withSkills)
             {
                 tvpSkillIDsTable.Rows.Add(skillID);

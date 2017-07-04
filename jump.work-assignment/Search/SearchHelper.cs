@@ -1,4 +1,5 @@
 ﻿using Model;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -9,70 +10,132 @@ namespace Search
     {
         /// <summary>
         /// Handles search queries against data model looking for people with specific attributes:
-        /// TODO: create a SearchItem here rather than individual params that we could reuse as a view model if we get to MVC it.
+        /// </summary>
+        /// <param name="withSkills"></param>
+        /// <param name="likeName"></param>
+        /// <param name="minAge"></param>
+        /// <param name="maxAge"></param>
+        /// <param name="yearsExperience"></param>
+        /// <returns></returns>
+        public static IEnumerable<Person> searchForPeople(IEnumerable<int> withSkills, string likeName, int? minAge, int? maxAge, int yearsExperience)
+        {
+            IQueryable<Person> peopleToFilter = null;
+            IEnumerable<Person> filteredPeople = new List<Person>();
+            using (var db = new JumpDBContext())
+            {
+                peopleToFilter = db.People_AllData;
+                peopleToFilter = filterPeopleByProperties(likeName, minAge, maxAge, ref peopleToFilter); //TODO: CHECK THIS - might not work.ToList();
+                peopleToFilter = filterPeopleByYearsExperience(yearsExperience, ref peopleToFilter);
+
+                //After initial filtering, process the remaining by skill
+                IDictionary<int, IEnumerable<int>> childSkillsByRequired = db.GetSubSkillIdsByParent(withSkills);
+                filteredPeople = peopleToFilter.ToList(); //This forces immediate execution of query on db. 
+                filteredPeople = filterPeopleBySkills(withSkills, childSkillsByRequired, filteredPeople);
+            }
+            return filteredPeople;
+        }
+
+        /// <summary>
+        /// Filters by basic properties. More complex properties are processed separately.
+        /// NB: SQL escaping happens for free with EF6 which internally escapes & uses SQLParams.
         /// </summary>
         /// <param name="likeName"></param>
         /// <param name="minAge"></param>
-        /// <param name="MaxAge"></param>
-        /// <param name="requiredSkills"></param>
-        /// <param name="yearsExperience"></param>
+        /// <param name="maxAge"></param>
+        /// <param name="peopleToFilter"></param>
         /// <returns></returns>
-        public static IEnumerable<Person> searchForPeople(string likeName, int minAge, int MaxAge, IEnumerable<int> requiredSkills, int yearsExperience)
+        private static IQueryable<Person> filterPeopleByProperties(string likeName, int? minAge, int? maxAge, ref IQueryable<Person> peopleToFilter)
         {
-            IEnumerable<Person> filteredPeople = null;
-            List<Person> results = new List<Person>();
-            using (var db = new JumpDBContext())
+            peopleToFilter.Where(person => person.Name.Contains(likeName));
+            if (minAge.HasValue)
             {
-                //Make initial call to filter out all those that dont match name, age, experience before further skill processing.
-                filteredPeople = filterParametersExceptSkill(likeName, minAge, MaxAge, yearsExperience, db).ToList();
+                peopleToFilter = peopleToFilter.Where(person => person.age >= minAge);
+            }
+            if (maxAge.HasValue)
+            {
+                peopleToFilter = peopleToFilter.Where(person => person.age <= maxAge);
+            }
+            return peopleToFilter;
+        }
+        
 
-                //Retrieve ancestors of required skills as dict<required-skill, list-children-skills>
-                IDictionary<int, IEnumerable<int>> requiredSkillChildren = db.GetSubSkillIdsByParent(requiredSkills);
+        /// <summary>
+        /// A few details on calcuating competitions:
+        /// - Your number of years experience is the number of years between now and your earliest event.
+        /// - If you have no events, then you have 0 years experience
+        /// - The search returns those with the same OR MORE years of experience.
+        /// </summary>
+        /// <param name="yearsExperience">num years exp to filter by -- filters out those with less years exp.</param>
+        /// <param name="peopleToFilter">existing query to be run against database.</param>
+        /// <returns></returns>
+        private static IQueryable<Person> filterPeopleByYearsExperience(int yearsExperience, ref IQueryable<Person> peopleToFilter)
+        {
+            int currentYear = DateTime.Today.Year;
+            peopleToFilter = peopleToFilter.Where(person => (currentYear -
+                                                    (person.Competitions.Select(comp => comp.Year) //int[] of years
+                                                    .DefaultIfEmpty(currentYear).Min()))  //select the earliest year, (or current year if theres no compititions)
+                                                >= yearsExperience);
+            return peopleToFilter;
+        }
 
-                foreach (Person person in filteredPeople) //not filtered by skill yet
+        /// <summary>
+        /// Different to the other filters, this method needs the existing results already processed by the database 
+        /// (See peopleToFilter IEnermable vs IQueryable)
+        /// This is so we can process the results individually to manage the skill checking. 
+        /// </summary>
+        /// <param name="requiredSkills">the explicitly required skills</param>
+        /// <param name="childSkillsByRequired">any children a required skill might have, hashed by each required skill</param>
+        /// <param name="peopleToFilter">the existing list of people to filter</param>
+        /// <returns></returns>
+        private static IEnumerable<Person> filterPeopleBySkills(IEnumerable<int> requiredSkills, IDictionary<int, IEnumerable<int>> childSkillsByRequired, IEnumerable<Person> peopleToFilter)
+        {
+            List<Person> results = new List<Person>();
+            foreach (Person person in peopleToFilter) 
+            {
+                //Find the skills that the person doesnt explicitly have. 
+                IEnumerable<int> personSkills = person.Skills.Select(skill => skill.ID);
+
+                //We need to make sure ALL of the requiredSkills are matched; 
+                IEnumerable<int> missingRequiredSkills = requiredSkills.Except(person.Skills.Select(skill => skill.ID));
+
+                if(missingRequiredSkills.Count() == 0) //initial check when the person has all skills explicitly
                 {
-                    //Find the skills that the person doesnt explicitly have. 
-                    IEnumerable<int> personSkills = person.Skills.Select(skill => skill.ID);
-                    var missingRequiredSkills = requiredSkills.Except(person.Skills.Select(skill => skill.ID));
-
-                    //We need to make sure ALL of the requiredSkills is matched; 
-                    //but that can occur implicitly by matching with ANY of their children
+                    results.Add(person);
+                    continue;
+                }
+                else
+                {
+                    //But if they dont all match explcitly, 
+                    //they can be matched implicitly by matching with ANY of their children
                     bool hasAllMissingSkillsAsChildren = true;
                     foreach (int skillID in missingRequiredSkills)
-                    {
-                        //check if the person's skills match with any children of the required skill
-                        if (!personSkills.Intersect(requiredSkillChildren[skillID]).Any())
+                    {   
+                        //First check that a required skill has any children
+                        if (childSkillsByRequired.ContainsKey(skillID))
+                        {
+                            //then check if the person's skills match with any children of the required skill
+                            IEnumerable<int> children = childSkillsByRequired[skillID];
+                            if (!personSkills.Intersect(children).Any())
+                            {
+                                hasAllMissingSkillsAsChildren = false;
+                                break;
+                            }
+                        }
+                        else
                         {
                             hasAllMissingSkillsAsChildren = false;
                             break;
                         }
                     }
-                    
-                    //If the person's skills are all matched explciitly, or some/all are matched implicitly, they are chosen.
-                    if (hasAllMissingSkillsAsChildren || missingRequiredSkills.Count() == 0)
+
+                    if (hasAllMissingSkillsAsChildren)
                     {
                         results.Add(person);
                     }
                 }
             }
+
             return results;
-        }
-        
-        /// <summary>
-        /// Filters by everything but skills. Skills need to be done separately due to skill-hierarchy checking.
-        /// NB: SQL escaping happens for free with EF6 which internally escapes & uses SQLParams.
-        /// </summary>
-        /// <param name="likeName"></param>
-        /// <param name="minAge"></param>
-        /// <param name="MaxAge"></param>
-        /// <param name="yearsExperience"></param>
-        /// <param name="db"></param>
-        /// <returns></returns>
-        private static IQueryable<Person> filterParametersExceptSkill(string likeName, int minAge, int MaxAge, int yearsExperience, JumpDBContext db)
-        {
-            return db.People.Where(person => person.Name.Contains(likeName))
-                .Where(person => person.age >= minAge && person.age <= MaxAge)
-                .Where(person => person.Competitions.Max(comp => comp.Year) - person.Competitions.Min(comp => comp.Year) >= yearsExperience);
         }
     }
 }
