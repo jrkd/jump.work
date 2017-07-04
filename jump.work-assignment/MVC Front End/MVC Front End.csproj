@@ -170,7 +170,6 @@
     <Content Include="bootstrap_files\theme.css" />
     <Content Include="bootstrap_files\typeahead.bundle.js" />
     <Content Include="bootstrap_files\typeahead.css" />
-    <Content Include="Scripts\pagescripts.js" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>

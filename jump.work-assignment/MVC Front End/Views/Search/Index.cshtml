@@ -53,7 +53,7 @@
                         <div class="form-group">
                             <label class="col-md-4 control-label" for="@Html.NameFor(model => model.RequiredSkillIDs)">@Html.DisplayNameFor(model => model.RequiredSkillIDs)</label>
                             <div class="col-md-8">
-                                <input id="@Html.IdFor(model => model.RequiredSkillIDs)" value="@Model.RequiredSkillIDs" name="@Html.NameFor(model => model.RequiredSkillIDs)" type="text" placeholder="with which skills?" class="form-control input-lg" >
+                                <input autocomplete="off" id="@Html.IdFor(model => model.RequiredSkillIDs)" value="@Model.RequiredSkillIDs" name="@Html.NameFor(model => model.RequiredSkillIDs)" type="text" placeholder="with which skills?" class="form-control input-lg" >
                             </div>
                         </div>
 
@@ -61,7 +61,7 @@
                         <div class="form-group">
                             <label class="col-md-4 control-label" for="@Html.NameFor(model => model.LikeName)">@Html.DisplayNameFor(model => model.LikeName)</label>
                             <div class="col-md-4">
-                                <input id="@Html.IdFor(model => model.LikeName)" name="@Html.NameFor(model => model.LikeName)" type="text" placeholder="with name containing.." class="form-control input-md" >
+                                <input autocomplete="off" id="@Html.IdFor(model => model.LikeName)" name="@Html.NameFor(model => model.LikeName)" type="text" placeholder="with name containing.." class="form-control input-md" >
                             </div>
                         </div>
 
@@ -86,12 +86,15 @@
                                             {
                                                 @: < @ageRange.MaxAge
                                             }
+                                            else{
+                                                @: Any age
+                                            }
                                         </option>
                                     }
                                 </select></div></div><!-- Min years exp input--><div class="form-group">
                             <label class="col-md-4 control-label" for="@Html.NameFor(model=>model.YearsExperience)">@Html.DisplayNameFor(model => model.YearsExperience)</label>
                             <div class="col-md-2">
-                                <input id="@Html.IdFor(model=>model.YearsExperience)" name="@Html.NameFor(model=>model.YearsExperience)" type="text" placeholder="min years experience?" class="form-control input-md">
+                                <input autocomplete="off" id="@Html.IdFor(model=>model.YearsExperience)" name="@Html.NameFor(model=>model.YearsExperience)" type="text" placeholder="min years experience?" class="form-control input-md">
                             </div>
                         </div>
 

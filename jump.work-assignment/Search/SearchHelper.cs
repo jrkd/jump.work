@@ -46,7 +46,10 @@ namespace Search
         /// <returns></returns>
         private static IQueryable<Person> filterPeopleByProperties(string likeName, int? minAge, int? maxAge, ref IQueryable<Person> peopleToFilter)
         {
-            peopleToFilter.Where(person => person.Name.Contains(likeName));
+            if (!string.IsNullOrEmpty(likeName))
+            {
+                peopleToFilter = peopleToFilter.Where(person => person.Name.Contains(likeName));
+            }
             if (minAge.HasValue)
             {
                 peopleToFilter = peopleToFilter.Where(person => person.age >= minAge);

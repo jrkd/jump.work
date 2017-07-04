@@ -20,7 +20,8 @@ namespace Model
             Dictionary<Skill, List<Competition>> compsBySkill = new Dictionary<Skill, List<Competition>>();
             foreach(var skill in skills)
             {
-                compsBySkill.Add(skill, new List<Competition>());
+                List<Competition> comps = new List<Competition>();
+                compsBySkill.Add(skill, comps);
                 for (int year = oldestCompetition; year <= DateTime.Today.Year; ++year)
                 {
                     if (year % 4 == 0) //every four years
@@ -30,7 +31,7 @@ namespace Model
                         bool isTour = NumGen.NextDouble() >= 0.5;
                         string[] sponsors = new string[] { "", "Qantas", "Dell", "TFL" };
                         string name = string.Format("The {0} {1} {2} {3} {4}",sponsors[NumGen.Next(0, sponsors.Length)], (isWorld ? "World" : ""), skill.Name, (isChampionship ? "Championship" : ""), (isTour ? "Tour" : ""));
-                        compsBySkill[skill].Add(new Competition()
+                        comps.Add(new Competition()
                         {
                             Name = name,
                             Year = year
@@ -51,13 +52,11 @@ namespace Model
             for(int index = 0; index < numToGenerate; ++index)
             {
                 int numComps = NumGen.Next(0, 4);
-                Console.WriteLine("Num skills" + competitionsBySkill.Select(pair => pair.Key).Count());
-                IEnumerable<Skill> personSkills = competitionsBySkill.Select(pair => pair.Key).OrderBy(a => Guid.NewGuid()).Take(5);
+                IEnumerable<KeyValuePair<Skill, List<Competition>>> personSkillKeys = competitionsBySkill.OrderBy(a => Guid.NewGuid()).Take(5).ToList();
                 //shuffle the comps list for person's skills
                 //take random num
-                IEnumerable<Competition> personComps = competitionsBySkill.Where(pair => personSkills.Contains(pair.Key))
-                                                                        .SelectMany(pair => pair.Value.OrderBy(a => Guid.NewGuid())) 
-                                                                        .Take(numComps);
+                IEnumerable<Competition> personComps = personSkillKeys.SelectMany(pair => pair.Value.OrderBy(a => Guid.NewGuid())) 
+                                                                      .Take(numComps);
                 generated.Add(new Person()
                 {
                     age = NumGen.Next(MIN_AGE, MAX_AGE),
@@ -65,10 +64,9 @@ namespace Model
                         textFormat.ToTitleCase(LASTNAMES[NumGen.Next(0, numNames)].ToLower()) //First name
                         + " "
                         + textFormat.ToTitleCase(LASTNAMES[NumGen.Next(0, numNames)].ToLower()),// Last name
-                    Skills= personSkills.ToList(),
+                    Skills = personSkillKeys.Select(pair=>pair.Key).ToList(),
                     Competitions = personComps.ToList()
                 });
-
             }
             return generated;
         }

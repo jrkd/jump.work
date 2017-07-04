@@ -37,7 +37,7 @@ namespace jump.work.mvc.Controllers
             AgeRangeVM selectedAgeRange = AgeRanges.Where(ageRange => ageRange.ID == search.SelectedAgeRange).FirstOrDefault();
 
             IEnumerable<int> requiredSkillIDs = new List<int>();
-            if (search.RequiredSkillIDs.Length > 0)
+            if (search.RequiredSkillIDs != null && search.RequiredSkillIDs.Length > 0)
             {
                 requiredSkillIDs = search.RequiredSkillIDs.Split(',').Select(strID => Convert.ToInt32(strID));
             }
