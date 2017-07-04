@@ -6,16 +6,13 @@ Athlete Search
 2. MS SQL Server 2016 Express (https://www.microsoft.com/en-gb/sql-server/sql-server-editions-express)
     - Setup a SQL Server without a name
     - Set sa password to password
-3. Web server can be either:  
+3. Compile and run  
     A. Install Visual Studio 2017 Community w/ IISExpress (packaged) https://www.visualstudio.com/downloads/
         - Compile projects
         - Open Package Manager window
             - Change *Default Project* drop down from `MVC Front End` to `Model`
             - run `update-database` command
             - Should output migrations & "running seed method"
-    B. Install IIS 10 
-        - Windows 10: *Turn windows features on/off* dialog, see http://www.c-sharpcorner.com/UploadFile/746cd9/configure-iis-in-windows-10-operating-system/ 
-        - See https://docs.microsoft.com/en-us/iis/get-started/whats-new-in-iis-8/installing-iis-8-on-windows-server-2012 if your on windows server
 
 I'd recommend installing VS with IISExpress, since setting up IIS 10 can be finicky. 
 
